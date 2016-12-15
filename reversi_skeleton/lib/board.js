@@ -33,18 +33,17 @@ Board.DIRS = [
  * throwing an Error if the position is invalid.
  */
 Board.prototype.getPiece = function (pos) {
-  if(!isValidPos) {
-    throw new Error("Not valid pos!");
-  } else {
-    return this.grid[pos[0]][pos[1]];
+  if(!this.isValidPos(pos)) {
+    throw new Error("Not a valid pos!");
   }
+    return this.grid[pos[0]][pos[1]];
 };
 
 /**
  * Checks if there are any valid moves for the given color.
  */
 Board.prototype.hasMove = function (color) {
-
+  return this.validMoves(color).length !== 0;
 };
 
 /**
@@ -52,12 +51,15 @@ Board.prototype.hasMove = function (color) {
  * matches a given color.
  */
 Board.prototype.isMine = function (pos, color) {
+  return (this.grid[pos[0]][pos[1]].color === color);
+  return false;
 };
 
 /**
  * Checks if a given position has a piece on it.
  */
 Board.prototype.isOccupied = function (pos) {
+  return (this.grid[pos[0]][pos[1]] === [];)
 };
 
 /**
@@ -65,6 +67,7 @@ Board.prototype.isOccupied = function (pos) {
  * the black player are out of moves.
  */
 Board.prototype.isOver = function () {
+  return !this.hasMove("Black") && !this.hasMove("White");
 };
 
 /**
@@ -88,6 +91,23 @@ Board.prototype.isValidPos = function (pos) {
  * Returns null if no pieces of the opposite color are found.
  */
 function _positionsToFlip (board, pos, color, dir, piecesToFlip) {
+  if (!piecesToFlip) {
+    piecesToFlip = [];
+  } else {
+    piecesToFlip.push(pos);
+  }
+
+  let nextPos = [pos[0] + dir[0], pos[1] + dir[1]];
+
+  if (!board.isValidPos(nextPos)) {
+    return null;
+  } else if (!board.isOccupied(nextPos)) {
+    return null;
+  } else if (board.isMine(nextPos, color)) {
+    return piecesToflip.length === 0 ? null : piecesToflip;
+  } else {
+    return _positionsToFlip(board, nextPos, color, fir, piecesToflip)
+  }
 }
 
 /**
@@ -97,12 +117,28 @@ function _positionsToFlip (board, pos, color, dir, piecesToFlip) {
  * Throws an error if the position represents an invalid move.
  */
 Board.prototype.placePiece = function (pos, color) {
+  if (!this.validMove(pos, color)) {
+    throw new Error("Invalid Move!")
+  }
+
+  let positionsToFlip = [];
+  for(let dirI = 0; dirI < this.DIRS.length; dirI++) {
+    positionsToFlip = positionsToFlip.concat(_positionsToFlip(this, pos, color, DIRS[dirI]) || []
+    );
+  }
+  for(let posIdx = 0; posIdx < positionsToFlip.length; posIdx ++) {
+    this.getPiece(positionsToFlip[posIdx]).flip();
+  }
+  this.grid[pos[0]][pos[1]] = new Piece(color);
 };
 
 /**
  * Prints a string representation of the Board to the console.
  */
 Board.prototype.print = function () {
+  for(let row = 0; row < 8; row++) {
+    console.log(this.grid[row])
+  }
 };
 
 /**
@@ -111,6 +147,17 @@ Board.prototype.print = function () {
  * color being flipped.
  */
 Board.prototype.validMove = function (pos, color) {
+  if (this.isOccupied(pos)) {
+    return false;
+  }
+
+  for (let i = 0; i < Board.DIRS.length; i++) {
+    const piecesToFlip = _positionsToFlip(this, pos, color, Board.DIRS[i]);
+    if (piecesToFlip) {
+      return true;
+    }
+  }
+  return false;
 };
 
 /**
@@ -118,6 +165,16 @@ Board.prototype.validMove = function (pos, color) {
  * the Board for a given color.
  */
 Board.prototype.validMoves = function (color) {
+  validMovesList = [];
+
+  for(let i = 0; i < 8; i++){
+    for(let j = 0; j < 8; j++) {
+      if (this.validMove([i, j], color)) {
+        validMovesList.push([i, j]);
+      }
+    }
+  }
+  return validMovesList
 };
 
 module.exports = Board;
