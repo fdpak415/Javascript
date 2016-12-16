@@ -4,22 +4,28 @@ let Piece = require("./piece");
  * Returns a 2D array (8 by 8) with two black pieces at [3, 4] and [4, 3]
  * and two white pieces at [3, 3] and [4, 4]
  */
-function _makeGrid (rows) {
-  const arr = new Array(rows).fill(new Array(rows).fill([]));
+function _makeGrid () {
+  // const arr = new Array(rows).fill(new Array(rows).fill());
+  const grid = [];
 
-  arr[3][4] = new Piece("Black");
-  arr[4][3] = new Piece("Black");
-  arr[3][3] = new Piece("White");
-  arr[4][4] = new Piece("White");
+  for (let i = 0; i < 8; i++) {
+    let row = new Array(8);
+    grid.push(row);
+  }
 
-  return arr;
+  grid[3][3] = new Piece("white");
+  grid[3][4] = new Piece("black");
+  grid[4][3] = new Piece("black");
+  grid[4][4] = new Piece("white");
+
+  return grid;
 }
 
 /**
  * Constructs a Board with a starting grid set up.
  */
 function Board () {
-  this.grid = _makeGrid(8);
+  this.grid = _makeGrid();
 }
 
 Board.DIRS = [
@@ -34,7 +40,7 @@ Board.DIRS = [
  */
 Board.prototype.getPiece = function (pos) {
   if(!this.isValidPos(pos)) {
-    throw new Error("Not a valid pos!");
+    throw new Error("Not valid pos!");
   }
     return this.grid[pos[0]][pos[1]];
 };
@@ -51,15 +57,15 @@ Board.prototype.hasMove = function (color) {
  * matches a given color.
  */
 Board.prototype.isMine = function (pos, color) {
-  return (this.grid[pos[0]][pos[1]].color === color);
-  return false;
+  const piece = this.getPiece(pos);
+  return piece && piece.color === color;
 };
 
 /**
  * Checks if a given position has a piece on it.
  */
 Board.prototype.isOccupied = function (pos) {
-  return (this.grid[pos[0]][pos[1]] === [];)
+  return !!this.getPiece(pos);
 };
 
 /**
@@ -67,14 +73,14 @@ Board.prototype.isOccupied = function (pos) {
  * the black player are out of moves.
  */
 Board.prototype.isOver = function () {
-  return !this.hasMove("Black") && !this.hasMove("White");
+  return !this.hasMove("black") && !this.hasMove("white");
 };
 
 /**
  * Checks if a given position is on the Board.
  */
 Board.prototype.isValidPos = function (pos) {
-  return ((pos[0] >= 0 && pos[0] < 8) && (pos[1] >= 0 && pos[1] < 8))
+  return (pos[0] >= 0 && pos[0] < 8) && (pos[1] >= 0 && pos[1] < 8);
 };
 
 /**
@@ -92,7 +98,7 @@ Board.prototype.isValidPos = function (pos) {
  */
 function _positionsToFlip (board, pos, color, dir, piecesToFlip) {
   if (!piecesToFlip) {
-    piecesToFlip = [];
+    const piecesToFlip = [];
   } else {
     piecesToFlip.push(pos);
   }
@@ -106,7 +112,7 @@ function _positionsToFlip (board, pos, color, dir, piecesToFlip) {
   } else if (board.isMine(nextPos, color)) {
     return piecesToflip.length === 0 ? null : piecesToflip;
   } else {
-    return _positionsToFlip(board, nextPos, color, fir, piecesToflip)
+    return _positionsToFlip(board, nextPos, color, dir, piecesToflip)
   }
 }
 
@@ -122,11 +128,12 @@ Board.prototype.placePiece = function (pos, color) {
   }
 
   let positionsToFlip = [];
-  for(let dirI = 0; dirI < this.DIRS.length; dirI++) {
-    positionsToFlip = positionsToFlip.concat(_positionsToFlip(this, pos, color, DIRS[dirI]) || []
+  for(let dirI = 0; dirI < Board.DIRS.length; dirI++) {
+    positionsToFlip = positionsToFlip.concat(
+      _positionsToFlip(this, pos, color, Board.DIRS[dirI]) || []
     );
   }
-  for(let posIdx = 0; posIdx < positionsToFlip.length; posIdx ++) {
+  for(let posIdx = 0; posIdx < positionsToFlip.length; posIdx++) {
     this.getPiece(positionsToFlip[posIdx]).flip();
   }
   this.grid[pos[0]][pos[1]] = new Piece(color);
@@ -152,7 +159,8 @@ Board.prototype.validMove = function (pos, color) {
   }
 
   for (let i = 0; i < Board.DIRS.length; i++) {
-    const piecesToFlip = _positionsToFlip(this, pos, color, Board.DIRS[i]);
+    const piecesToFlip =
+    _positionsToFlip(this, pos, color, Board.DIRS[i]);
     if (piecesToFlip) {
       return true;
     }
@@ -165,7 +173,7 @@ Board.prototype.validMove = function (pos, color) {
  * the Board for a given color.
  */
 Board.prototype.validMoves = function (color) {
-  validMovesList = [];
+  const validMovesList = [];
 
   for(let i = 0; i < 8; i++){
     for(let j = 0; j < 8; j++) {
