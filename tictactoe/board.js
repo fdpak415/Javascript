@@ -1,3 +1,6 @@
+const MoveError = require("./moveError");
+
+
 class Board {
   constructor() {
     this.grid = Board.makeGrid();
@@ -40,7 +43,7 @@ class Board {
     if (!this.isEmptyPos(pos)) {
       throw new MoveError('Not an empty position')
     }
-    this.grid[pos[0][pos[1]] = mark;
+    this.grid[pos[0]][pos[1]] = mark;
   }
 
   print() {
@@ -110,4 +113,4 @@ class Board {
 
 Board.marks = ['x', 'o'];
 
-modules.exports = Board;
+module.exports = Board;
