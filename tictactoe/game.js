@@ -56,6 +56,14 @@ class Game {
     });
   }
 
+  swapTurn() {
+    if (this.currentPlayer === Board.marks[0]) {
+      this.currentPlayer = Board.marks[1];
+    } else {
+      this.currentPlayer = Board.marks[0];
+    }
+  }
+
   winner() {
     return this.board.winner();
   }
